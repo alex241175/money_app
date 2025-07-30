@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "87893363102",
+    "project_id": "money-c6605",
+    "storage_bucket": "money-c6605.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:87893363102:android:0626a0eb19041e7ff72e8f",
+        "android_client_info": {
+          "package_name": "com.example.money_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD_CpE2yA59nx8CnsuuHUPVWgQYVPmI7Zc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
