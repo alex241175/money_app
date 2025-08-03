@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:money_app/screens/account_detail.dart';
+import 'package:money_app/screens/category_detail.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:money_app/providers/database.dart';
 
-class AccountsScreen extends ConsumerStatefulWidget {
-  const AccountsScreen({super.key});
+class CategoriesScreen extends ConsumerStatefulWidget {
+  const CategoriesScreen({super.key});
 
   @override
-  ConsumerState<AccountsScreen> createState() => _AccountsScreenState();
+  ConsumerState<CategoriesScreen> createState() => _CategoriesScreenState();
 }
 
-class _AccountsScreenState extends ConsumerState<AccountsScreen> {
+class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
   Future<dynamic>? _futureData;
 
   @override
@@ -18,7 +18,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
     super.initState();
     final database = ref.read(databaseProvider);
     setState(() {
-      _futureData = database.allAccounts;
+      _futureData = database.allCategories;
     });
   }
 
@@ -27,7 +27,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
     final database = ref.read(databaseProvider);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Accounts'),
+        title: const Text('Categories'),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -36,13 +36,13 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                   .push(
                     MaterialPageRoute(
                       builder: (ctx) =>
-                          const AccountDetailScreen(isEdit: false),
+                          const CategoryDetailScreen(isEdit: false),
                     ),
                   )
                   .then((value) {
                     // this code runs when secondscreen is popped
                     setState(() {
-                      _futureData = database.allAccounts;
+                      _futureData = database.allCategories;
                     });
                   });
             },
@@ -68,7 +68,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
               final id = items[index].id;
               return Dismissible(
                 onDismissed: (direction) async {
-                  await database.removeAccount(id);
+                  await database.removeCategory(id);
                   // Create a SnackBar
                   final snackBar = SnackBar(
                     content: const Text('Deleted!'),
@@ -87,24 +87,30 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                 child: ListTile(
                   title: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [Text(item['name']), Text(item['currency'])],
+                    children: [
+                      Text(item['name']),
+                      Text(
+                        item['description'],
+                        style: TextStyle(fontSize: 14.0),
+                      ),
+                    ],
                   ),
                   trailing: IconButton(
                     onPressed: () {
                       Navigator.of(context)
                           .push(
                             MaterialPageRoute(
-                              builder: (ctx) => AccountDetailScreen(
+                              builder: (ctx) => CategoryDetailScreen(
                                 isEdit: true,
                                 id: id,
-                                account: item,
+                                category: item,
                               ),
                             ),
                           )
                           .then((value) {
                             // this code runs when secondscreen is popped
                             setState(() {
-                              _futureData = database.allAccounts;
+                              _futureData = database.allCategories;
                             });
                           });
                     },

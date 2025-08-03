@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 class TransactionDetailScreen extends ConsumerStatefulWidget {
   final bool isEdit;
   final String? id;
-  final Map<String, dynamic>? transaction;
+  final Transaction? transaction;
 
   const TransactionDetailScreen({
     super.key,
@@ -26,13 +26,11 @@ class _TransactionDetailScreenState
     extends ConsumerState<TransactionDetailScreen> {
   // declare input variables
   final _formKey = GlobalKey<FormState>();
-  final List<String> _categories = ['Food', 'Transport', 'Car', 'Utility'];
   final TextEditingController _dateController = TextEditingController();
 
   DateTime? _selectedDate;
   Account? _selectedAccount; // Variable to hold the selected account object
-  String _selectedCategory = ''; // Variable to hold the selected category value
-  //String _selectedCurrency = '';
+  String? _selectedCategory; // Variable to hold the selected category value
   double _amount = 0;
   String _note = '';
 
@@ -42,7 +40,7 @@ class _TransactionDetailScreenState
       final database = ref.read(databaseProvider);
       Transaction t = Transaction(
         dateTime: _selectedDate!,
-        category: _selectedCategory,
+        category: _selectedCategory!,
         account: _selectedAccount!.name,
         currency: _selectedAccount!.currency,
         amount: _amount,
@@ -62,20 +60,19 @@ class _TransactionDetailScreenState
   void initState() {
     super.initState();
     if (widget.isEdit) {
-      _selectedDate = widget.transaction!['dateTime'].toDate();
+      _selectedDate = widget.transaction!.dateTime;
       _dateController.text = DateFormat('yyyy-MM-dd').format(_selectedDate!);
-      _selectedCategory = widget.transaction!['category'];
+      _selectedCategory = widget.transaction!.category;
       _selectedAccount = Account(
-        name: widget.transaction!['account'],
-        currency: widget.transaction!['currency'],
+        name: widget.transaction!.account,
+        currency: widget.transaction!.currency,
       );
       //_selectedCurrency = widget.transaction!['currency'];
-      _amount = widget.transaction!['amount'];
-      _note = widget.transaction!['note'];
+      _amount = widget.transaction!.amount;
+      _note = widget.transaction!.note ?? '';
     } else {
       _selectedDate = DateTime.now();
       _dateController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
-      _selectedCategory = _categories.first; // Set initial selected option
     }
   }
 
@@ -122,8 +119,8 @@ class _TransactionDetailScreenState
                 },
               ),
               //Accounts field
-              StreamBuilder(
-                stream: database.allAccounts,
+              FutureBuilder(
+                future: database.allAccounts,
                 builder: (ctx, snapshot) {
                   final docs = snapshot.data!.docs;
 
@@ -154,22 +151,35 @@ class _TransactionDetailScreenState
                 },
               ),
               // Category field
-              DropdownButton<String>(
-                value: _selectedCategory,
-                items: _categories.map((String option) {
-                  return DropdownMenuItem<String>(
-                    value: option,
-                    child: Text(option),
+              FutureBuilder(
+                future: database.allCategories,
+                builder: (ctx, snapshot) {
+                  final docs = snapshot.data!.docs;
+
+                  List<DropdownMenuItem<String>> categories = [];
+                  for (var doc in docs) {
+                    categories.add(
+                      DropdownMenuItem<String>(
+                        value: doc['name'],
+                        child: Text(doc['name']),
+                      ),
+                    );
+                  }
+                  // _selectedAccount = accounts[0].value!;
+
+                  return DropdownButton<String>(
+                    value: _selectedCategory,
+                    items: categories,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedCategory = value!;
+                      });
+                    },
+                    hint: Text('Select a category'), // Optional hint text
                   );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedCategory = newValue!;
-                  });
                 },
-                hint: Text('Select a category'), // Optional hint text
               ),
-              // currency field
+              // currency and amount field
               Row(
                 children: [
                   Container(
@@ -186,10 +196,10 @@ class _TransactionDetailScreenState
                       decoration: const InputDecoration(labelText: 'Amount'),
                       keyboardType: TextInputType.numberWithOptions(
                         decimal: true,
-                        signed: false,
+                        signed: true,
                       ),
                       initialValue: widget.isEdit
-                          ? widget.transaction!['amount'].toString()
+                          ? widget.transaction!.amount.toString()
                           : '',
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -205,11 +215,10 @@ class _TransactionDetailScreenState
                 ],
               ),
 
-              //Amount field
               // Note field
               TextFormField(
                 decoration: const InputDecoration(labelText: 'Note'),
-                initialValue: widget.isEdit ? widget.transaction!['note'] : '',
+                initialValue: widget.isEdit ? widget.transaction!.note : '',
                 onChanged: (value) {
                   _note = value;
                 },

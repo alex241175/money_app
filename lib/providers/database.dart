@@ -2,16 +2,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:money_app/models/transaction.dart' as money_app;
 import 'package:money_app/models/account.dart';
+import 'package:money_app/models/category.dart';
 
 class Database {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   CollectionReference? _transactions;
   CollectionReference? _accounts;
+  CollectionReference? _categories;
 
-  Stream get allTransactions => _firestore
-      .collection("transactions")
-      .orderBy('dateTime', descending: true)
-      .snapshots();
+  // get all transactions
+  Future get allTransactions =>
+      _firestore //return a querysnapshot
+          .collection("transactions")
+          .orderBy('dateTime', descending: true)
+          .get();
 
   // Add a transaction
   Future<bool> addNewTransaction(money_app.Transaction t) async {
@@ -67,10 +71,11 @@ class Database {
     }
   }
 
-  Stream get allAccounts =>
-      _firestore.collection("accounts").orderBy('name').snapshots();
+  // get all accounts
+  Future get allAccounts =>
+      _firestore.collection("accounts").orderBy('name').get();
 
-  // Add
+  // Add an account
   Future<bool> addNewAccount(Account a) async {
     _accounts = _firestore.collection(
       'accounts',
@@ -86,7 +91,7 @@ class Database {
     }
   }
 
-  // Remove a Transaction
+  // Remove an account
   Future<bool> removeAccount(String id) async {
     _accounts = _firestore.collection('accounts');
     try {
@@ -97,13 +102,58 @@ class Database {
     }
   }
 
-  // Edit a transaction
+  // Edit an account
   Future<bool> editAccount(Account a, String id) async {
     _accounts = _firestore.collection('accounts');
     try {
       await _accounts!.doc(id).update(
         // updates the document having id of id
         {'currency': a.currency, 'name': a.name},
+      );
+      return true; //// return true after successful updation .
+    } catch (e) {
+      return Future.error(e); //return error
+    }
+  }
+
+  // get all categories
+  Future get allCategories =>
+      _firestore.collection("categories").orderBy('name').get();
+
+  // Add an account
+  Future<bool> addNewCategory(Category c) async {
+    _categories = _firestore.collection(
+      'categories',
+    ); // referencing the transactions collection .
+    try {
+      await _categories!.add({
+        'name': c.name,
+        'description': c.description,
+      }); // Adding a new document to our movies collection
+      return true; // finally return true
+    } catch (e) {
+      return Future.error(e); // return error
+    }
+  }
+
+  // Remove a category
+  Future<bool> removeCategory(String id) async {
+    _categories = _firestore.collection('categories');
+    try {
+      await _categories!.doc(id).delete();
+      return true; // return true after successful deletion .
+    } catch (e) {
+      return Future.error(e); // return error
+    }
+  }
+
+  // Edit a category
+  Future<bool> editCategory(Category c, String id) async {
+    _categories = _firestore.collection('categories');
+    try {
+      await _categories!.doc(id).update(
+        // updates the document having id of id
+        {'description': c.description, 'name': c.name},
       );
       return true; //// return true after successful updation .
     } catch (e) {
