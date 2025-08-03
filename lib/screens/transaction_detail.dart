@@ -33,6 +33,7 @@ class _TransactionDetailScreenState
   String? _selectedCategory; // Variable to hold the selected category value
   double _amount = 0;
   String _note = '';
+  bool _isTransfer = false;
 
   // submit form
   void _submit(context) async {
@@ -40,7 +41,7 @@ class _TransactionDetailScreenState
       final database = ref.read(databaseProvider);
       Transaction t = Transaction(
         dateTime: _selectedDate!,
-        category: _selectedCategory!,
+        category: _selectedCategory ?? '',
         account: _selectedAccount!.name,
         currency: _selectedAccount!.currency,
         amount: _amount,
@@ -84,6 +85,18 @@ class _TransactionDetailScreenState
         title: widget.isEdit
             ? Text('Edit Transaction')
             : Text('Add Transaction'),
+
+        actions: [
+          Text('Transfer Mode'),
+          Switch(
+            value: _isTransfer,
+            onChanged: (value) {
+              setState(() {
+                _isTransfer = value;
+              });
+            },
+          ),
+        ],
       ),
       body: Form(
         key: _formKey,
@@ -118,21 +131,30 @@ class _TransactionDetailScreenState
                   }
                 },
               ),
-              //Accounts field
-              FutureBuilder(
+              // //Accounts field
+              FutureBuilder<List<Map<String, dynamic>>>(
                 future: database.allAccounts,
                 builder: (ctx, snapshot) {
-                  final docs = snapshot.data!.docs;
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error loading data'));
+                  }
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return Center(child: Text('No data available'));
+                  }
+                  final items = snapshot.data!;
 
                   List<DropdownMenuItem<Account>> accounts = [];
-                  for (var doc in docs) {
+                  for (var item in items) {
                     accounts.add(
                       DropdownMenuItem<Account>(
                         value: Account(
-                          name: doc['name'],
-                          currency: doc['currency'],
+                          name: item['name'],
+                          currency: item['currency'],
                         ),
-                        child: Text(doc['name']),
+                        child: Text(item['name']),
                       ),
                     );
                   }
@@ -150,11 +172,20 @@ class _TransactionDetailScreenState
                   );
                 },
               ),
-              // Category field
+              // // Category field
               FutureBuilder(
                 future: database.allCategories,
                 builder: (ctx, snapshot) {
-                  final docs = snapshot.data!.docs;
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error loading data'));
+                  }
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return Center(child: Text('No data available'));
+                  }
+                  final docs = snapshot.data!;
 
                   List<DropdownMenuItem<String>> categories = [];
                   for (var doc in docs) {

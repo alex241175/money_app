@@ -2,8 +2,9 @@ class Account {
   final String? id; // nullable
   final String name;
   final String currency;
+  final String? note;
 
-  Account({this.id, required this.name, required this.currency});
+  Account({this.id, required this.name, required this.currency, this.note});
 
   // Override == and hashCode for content-based comparison
   @override

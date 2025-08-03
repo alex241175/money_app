@@ -52,20 +52,23 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
       body: FutureBuilder(
         future: _futureData,
         builder: (ctx, snapshot) {
-          if (!snapshot.hasData) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           }
-          if (snapshot.error != null) {
-            return Center(child: Text('Some error occurred'));
+          if (snapshot.hasError) {
+            return Center(child: Text('Error loading data'));
+          }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text('No data available'));
           }
 
-          final items = snapshot.data!.docs;
+          final items = snapshot.data!;
 
           return ListView.builder(
             itemCount: items.length,
             itemBuilder: (ctx, index) {
-              final item = items[index].data();
-              final id = items[index].id;
+              final item = items[index];
+              final String id = items[index]['id'];
               return Dismissible(
                 onDismissed: (direction) async {
                   await database.removeCategory(id);

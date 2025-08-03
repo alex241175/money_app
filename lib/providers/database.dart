@@ -11,11 +11,22 @@ class Database {
   CollectionReference? _categories;
 
   // get all transactions
-  Future get allTransactions =>
-      _firestore //return a querysnapshot
-          .collection("transactions")
-          .orderBy('dateTime', descending: true)
-          .get();
+  // Future get allTransactions =>
+  //     _firestore //return a querysnapshot
+  //         .collection("transactions")
+  //         .orderBy('dateTime', descending: true)
+  //         .get();
+
+  // get all accounts
+  Future<List<Map<String, dynamic>>> get allTransactions async {
+    QuerySnapshot querySnapshot = await _firestore
+        .collection("transactions")
+        .orderBy('dateTime', descending: true)
+        .get();
+    return querySnapshot.docs.map((doc) {
+      return {'id': doc.id, ...doc.data() as Map<String, dynamic>};
+    }).toList();
+  }
 
   // Add a transaction
   Future<bool> addNewTransaction(money_app.Transaction t) async {
@@ -72,8 +83,15 @@ class Database {
   }
 
   // get all accounts
-  Future get allAccounts =>
-      _firestore.collection("accounts").orderBy('name').get();
+  Future<List<Map<String, dynamic>>> get allAccounts async {
+    QuerySnapshot querySnapshot = await _firestore
+        .collection("accounts")
+        .orderBy('name')
+        .get();
+    return querySnapshot.docs.map((doc) {
+      return {'id': doc.id, ...doc.data() as Map<String, dynamic>};
+    }).toList();
+  }
 
   // Add an account
   Future<bool> addNewAccount(Account a) async {
@@ -117,10 +135,17 @@ class Database {
   }
 
   // get all categories
-  Future get allCategories =>
-      _firestore.collection("categories").orderBy('name').get();
+  Future<List<Map<String, dynamic>>> get allCategories async {
+    QuerySnapshot querySnapshot = await _firestore
+        .collection("categories")
+        .orderBy('name')
+        .get();
+    return querySnapshot.docs.map((doc) {
+      return {'id': doc.id, ...doc.data() as Map<String, dynamic>};
+    }).toList();
+  }
 
-  // Add an account
+  // Add a categories
   Future<bool> addNewCategory(Category c) async {
     _categories = _firestore.collection(
       'categories',

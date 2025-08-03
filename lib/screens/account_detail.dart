@@ -26,13 +26,19 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
   final List<String> _currencies = ['MYR', 'SGD'];
   String _selectedCurrency = ''; // Variable to hold the selected option
   String _name = '';
+  String _note = '';
 
   // submit form
   void _submit(context) async {
     if (_formKey.currentState!.validate()) {
       final database = ref.read(databaseProvider);
 
-      Account a = Account(id: '', name: _name, currency: _selectedCurrency);
+      Account a = Account(
+        id: '',
+        name: _name,
+        currency: _selectedCurrency,
+        note: _note,
+      );
       if (widget.isEdit) {
         await database.editAccount(a, widget.id!);
       } else {
@@ -91,7 +97,13 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
                 },
                 hint: Text('Select a currency'), // Optional hint text
               ),
-
+              TextFormField(
+                decoration: const InputDecoration(labelText: 'Note'),
+                initialValue: widget.isEdit ? widget.account!['note'] : '',
+                onChanged: (value) {
+                  _name = value;
+                },
+              ),
               const SizedBox(height: 10),
               ElevatedButton(
                 onPressed: () => _submit(context),
